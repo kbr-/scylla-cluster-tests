@@ -4579,5 +4579,8 @@ class NoMonitorSet():
     def collect_logs(self, storage_dir):
         pass
 
+    def set_keep_alive_on_failure(self):
+        pass
+
     def get_grafana_screenshot_and_snapshot(self, test_start_time=None):  # pylint: disable=unused-argument,no-self-use,invalid-name
         return {}

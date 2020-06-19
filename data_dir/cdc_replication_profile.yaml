@@ -1,0 +1,17 @@
+keyspace: ks
+table: tb
+
+columnspec:
+  - name: pk
+    population: uniform(1..1k)
+
+  - name: ck
+    population: uniform(1..1k)
+
+  - name: v
+    size: exp(1..5)
+
+queries:
+  update:
+    cql: update ks.tb set v = ? where pk = ? and ck = ?
+    fields: samerow
