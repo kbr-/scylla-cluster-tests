@@ -1,0 +1,21 @@
+test_duration: 60
+n_db_nodes: 1
+n_test_oracle_db_nodes: 0
+n_loaders: 1
+n_monitor_nodes: 0
+instance_type_db: 'i3.large'
+
+user_prefix: 'test-gemini'
+store_results_in_elasticsearch: False
+
+gemini_cmd: "gemini -d --duration 60s --warmup 30s -c 5 \
+-m write -f --non-interactive --cql-features normal \
+--max-mutation-retries 100 --max-mutation-retries-backoff 100ms \
+--replication-strategy \"{'class': 'SimpleStrategy', 'replication_factor': '3'}\" "
+
+gemini_version: 'latest'
+gemini_schema_url: 'https://s3.amazonaws.com/scylla-gemini/Binaries/schema.json' # not used
+
+  #db_type: mixed_scylla
+db_type: scylla
+  #instance_type_db_oracle: 'i3.large'
