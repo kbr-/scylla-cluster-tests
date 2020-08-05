@@ -5,7 +5,6 @@ def completed_stages = [:]
 def runSctTest(Map params, String region){
     def aws_region = initAwsRegionParam(params.aws_region, region)
     def test_config = groovy.json.JsonOutput.toJson(params.test_config)
-    def cloud_provider = params.backend.trim().toLowerCase()
 
     sh """
     #!/bin/bash
@@ -52,17 +51,7 @@ def runSctTest(Map params, String region){
     fi
 
     echo "start test ......."
-    if [[ "$cloud_provider" == "aws" ]]; then
-        SCT_RUNNER_IP=\$(cat sct_runner_ip||echo "")
-        if [[ ! -z "\${SCT_RUNNER_IP}" ]] ; then
-            ./docker/env/hydra.sh --execute-on-runner \${SCT_RUNNER_IP} run-test ${params.test_name} --backend ${params.backend}
-        else
-            echo "SCT runner IP file is empty. Probably SCT Runner was not created."
-            exit 1
-        fi
-    else
-        ./docker/env/hydra.sh run-test ${params.test_name} --backend ${params.backend}  --logdir "`pwd`"
-    fi
+    ./docker/env/hydra.sh run-test ${params.test_name} --backend ${params.backend}  --logdir "`pwd`"
     echo "end test ....."
     """
 }
