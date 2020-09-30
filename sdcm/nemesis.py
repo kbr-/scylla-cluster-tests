@@ -28,7 +28,7 @@ import traceback
 import json
 
 
-from typing import List, Optional, TypedDict, Type
+from typing import List, Optional, TypedDict, Type, Callable
 from collections import OrderedDict, defaultdict, Counter, namedtuple
 from functools import wraps, partial
 
@@ -796,6 +796,9 @@ class Nemesis:  # pylint: disable=too-many-instance-attributes,too-many-public-m
             # consume the random sequence
             disrupt_method = self._random_sequence.pop()
 
+        self.call_disrupt_method(disrupt_method)
+
+    def call_disrupt_method(self, disrupt_method: Callable) -> None:
         disrupt_method_name = disrupt_method.__name__.replace('disrupt_', '')
         self.log.info(">>>>>>>>>>>>>Started random_disrupt_method %s" % disrupt_method_name)
         self.metrics_srv.event_start(disrupt_method_name)
