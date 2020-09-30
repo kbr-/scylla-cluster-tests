@@ -484,20 +484,11 @@ class ClusterTester(db_stats.TestStatsMixin, unittest.TestCase):  # pylint: disa
         :return: Nemesis class.
         :rtype: nemesis.Nemesis derived class
         """
-        nemesis_threads = []
-        list_class_name = self.params.get('nemesis_class_name')
-        for klass in list_class_name.split(' '):
-            try:
-                nemesis_name, num = klass.strip().split(':')
-                nemesis_name = nemesis_name.strip()
-                num = num.strip()
-
-            except ValueError:
-                nemesis_name = klass.split(':')[0]
-                num = 1
-            nemesis_threads.append({'nemesis': getattr(nemesis, nemesis_name), 'num_threads': int(num)})
-
-        return nemesis_threads
+        # FIXME: update docstring
+        spec = self.params.get_nemesis_spec()
+        return [{'nemesis': getattr(nemesis, n['name']),
+                 'num_threads': n['num_threads']}
+                    for n in spec]
 
     def get_cluster_gce(self, loader_info, db_info, monitor_info):
         # pylint: disable=too-many-locals,too-many-statements,too-many-branches

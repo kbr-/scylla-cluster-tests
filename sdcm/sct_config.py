@@ -1453,3 +1453,27 @@ class SCTConfiguration(dict):
             ret += "{help_text}{name}: {default}\n\n".format(help_text=help_text, default=default, **opt)
 
         return ret
+
+    def get_nemesis_spec(self):
+        """
+        Parse the `nemesis_class_name` param to obtain the name
+        and number of threads for each specified nemesis.
+
+        :return: A list of dictionaries, one for each specified nemesis,
+                 with nemesis name and the number of threads.
+        :rtype: list[dict]
+        """
+        nemesis_threads = []
+        list_class_name = self.get('nemesis_class_name')
+        for klass in list_class_name.split(' '):
+            try:
+                nemesis_name, num = klass.strip().split(':')
+                nemesis_name = nemesis_name.strip()
+                num = num.strip()
+
+            except ValueError:
+                nemesis_name = klass.split(':')[0]
+                num = 1
+            nemesis_threads.append({'name': nemesis_name, 'num_threads': int(num)})
+
+        return nemesis_threads
