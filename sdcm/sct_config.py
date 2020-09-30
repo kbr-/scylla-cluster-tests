@@ -18,6 +18,7 @@ import anyconfig
 from sdcm.utils.common import find_scylla_repo, get_scylla_ami_versions, get_branched_ami, get_ami_tags, \
     ami_built_by_scylla, MAX_SPOT_DURATION_TIME
 from sdcm.utils.version_utils import get_branch_version, get_branch_version_for_multiple_repositories
+from sdcm.nemesis import DistributedMonkey
 
 
 # pylint: disable=too-few-public-methods
@@ -420,6 +421,28 @@ class SCTConfiguration(dict):
              env="SCT_NEMESIS_ADD_NODE_CNT",
              type=int,
              help="""Add/remove nodes during GrowShrinkCluster nemesis"""),
+
+        dict(name="nemesis_disruption_distribution",
+             env="SCT_NEMESIS_DISRUPTION_DISTRIBUTION",
+             type=dict,
+             help="""
+                    A distribution specifying how often each disruption is run
+                    by the DistributedMonkey nemesis.
+
+                    Specified as a dictionary: the key of each entry is the disruption
+                    name and the value is an integer: the weight of this disruption.
+                    The probability that this disruption will be selected is equal to
+                    the value divided by the sum of all values in the dictionary.
+
+                    For example, the following dictionary:
+                        network_random_interruptions: 2
+                        remove_node_then_add_node: 3
+                        grow_shrink_cluster: 5
+                    specifies that `network_random_interruptions` will be chosen
+                    with probability 2 / (2+3+5) = 2/10, and so on.
+
+                    Non-listed disruptions and those with value 0 won't be selected at all.
+             """),
 
         dict(name="cluster_target_size", env="SCT_CLUSTER_TARGET_SIZE", type=int,
              help="""Used for scale test: max size of the cluster"""),
@@ -1393,6 +1416,14 @@ class SCTConfiguration(dict):
         get_branch_version_for_multiple_repositories(urls=[self.get(url) for url in [
             'new_scylla_repo', 'scylla_repo_m', 'scylla_repo_loader', 'scylla_mgmt_repo', 'scylla_mgmt_agent_repo',
             'scylla_mgmt_agent_repo'] if self.get(url)])
+
+        # if DistributedMonkey nemesis is specified, verify that the `nemesis_disruption_distribution`
+        # argument is provided and correctly specified.
+        if any((n['nemesis'] == DistributedMonkey.__name__ for n in self.get_nemesis_spec())):
+            try:
+                DistributedMonkey.get_disruption_distribution(self.get('nemesis_disruption_distribution', None))
+            except ValueError as err:
+                raise ValueError("Error when parsing `nemesis_disruption_distribution` for DistributedMonkey") from err
 
     def dump_config(self):
         """

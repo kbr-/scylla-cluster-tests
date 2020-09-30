@@ -28,7 +28,7 @@ import traceback
 import json
 
 
-from typing import List, Optional, TypedDict, Type, Callable
+from typing import List, Optional, TypedDict, Type, Callable, Tuple, Dict, Set
 from collections import OrderedDict, defaultdict, Counter, namedtuple
 from functools import wraps, partial
 
@@ -2676,6 +2676,70 @@ class ChaosMonkey(Nemesis):
         self.call_random_disrupt_method()
 
 
+class DistributedMonkey(Nemesis):
+
+    @staticmethod
+    def get_disruption_distribution(dist: Optional[dict]) -> Tuple[List[Callable], List[int]]:
+        if not dist:
+            raise ValueError("Disruption distribution not provided")
+
+        def is_nonnegative_int(val):
+            try:
+                val = float(val)
+            except ValueError:
+                return False
+            else:
+                return val.is_integer() and val >= 0
+
+
+        disrupt_methods = DistributedMonkey.get_disrupt_methods()
+
+        any_positive = False
+        population: List[Callable] = []
+        weights: List[int] = []
+
+        for name, weight in dist.items():
+            name = str(name)
+            prefixed_name = prefixed('disrupt_', name)
+            if prefixed_name not in disrupt_methods:
+                raise ValueError(f"'{name}' is not a valid disruption")
+
+            if not is_nonnegative_int(weight):
+                raise ValueError("Each disruption weight must be a non-negative integer."
+                                 f" '{weight}' is not a valid weight.")
+
+            if int(weight) > 0:
+                any_positive = True
+
+            population.append(disrupt_methods[prefixed_name])
+            weights.append(int(weight))
+
+        if not any_positive:
+            raise ValueError("At least one disruption must have positive weight.")
+
+        return population, weights
+
+    @staticmethod
+    def get_disrupt_methods() -> Dict[str, Callable]:
+        return {attr[0]: attr[1] for attr in inspect.getmembers(DistributedMonkey) if
+                attr[0].startswith('disrupt_') and
+                callable(attr[1])}
+
+    def __init__(self, *args, **kwargs):
+        super(DistributedMonkey, self).__init__(*args, **kwargs)
+        self.disruption_distribution = DistributedMonkey.get_disruption_distribution(
+                self.tester.params.get('nemesis_disruption_distribution'))
+
+    @log_time_elapsed_and_status
+    def disrupt(self):
+        population, weights = self.disruption_distribution
+        assert len(population) == len(weights) and population
+
+        method = random.choices(population, weights=weights)[0]
+        bound_method = method.__get__(self, DistributedMonkey)
+        self.call_disrupt_method(bound_method)
+
+
 class LimitedChaosMonkey(Nemesis):
 
     @log_time_elapsed_and_status
@@ -3199,3 +3263,9 @@ class MemoryStressMonkey(Nemesis):
     @log_time_elapsed_and_status
     def disrupt(self):
         self.disrupt_memory_stress()
+
+
+def prefixed(pref: str, val: str) -> str:
+    if val.startswith(pref):
+        return val
+    return pref + val
