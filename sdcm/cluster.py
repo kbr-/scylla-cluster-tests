@@ -4221,7 +4221,7 @@ class BaseLoaderSet():
         if gemini_version.lower() == 'latest':
             gemini_version = get_latest_gemini_version()
 
-        gemini_url = 'http://downloads.scylladb.com/gemini/{0}/gemini_{0}_Linux_x86_64.tar.gz'.format(gemini_version)
+        gemini_url = 'https://kbr-scylla.s3-eu-west-1.amazonaws.com/gemini.tar'
         # TODO: currently schema is not used by gemini tool need to store the schema
         #       in data_dir for each test
         gemini_schema_url = self.params.get('gemini_schema_url')
