@@ -1,0 +1,4 @@
+test_duration: 1200
+n_db_nodes: 90
+cluster_target_size: 100
+use_legacy_cluster_init: false
