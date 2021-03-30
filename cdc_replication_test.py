@@ -167,10 +167,7 @@ class CDCReplicationTest(ClusterTester):
             }, default_weight=0))
         self.db_cluster.nemesis_count = 1
 
-        # 9 rounds, ~1h30 minutes each -> ~11h30m total
-        # The number of rounds is tuned according to the available disk space in an i3.large AWS instance.
-        # One more round would cause the nodes to run out of disk space.
-        no_rounds = 9
+        no_rounds = 12
         for rnd in range(no_rounds):
             self.log.info('Starting round {}'.format(rnd))
 
