@@ -24,3 +24,6 @@ gemini_cmd: "gemini --duration 10m --warmup 0s -c 2 -m write --non-interactive -
 gemini_version: 'latest'
 # Required by SCT, although not used:
 gemini_schema_url: 'https://s3.amazonaws.com/scylla-gemini/Binaries/schema.json'
+
+# Disable hinted handoff since it may sometimes hide consistency bugs
+hinted_handoff: 'disabled'
