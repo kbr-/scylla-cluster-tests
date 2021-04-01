@@ -317,6 +317,7 @@ class CDCReplicationTest(ClusterTester):
         loader_node = self.loaders.nodes[0]
         self.log.info('Comparing table contents using scylla-migrate...')
         res = loader_node.remoter.run(cmd='./scylla-migrate check --master-address {} --replica-address {}'
+                                      ' --master-cl quorum'
                                       ' --ignore-schema-difference {} {}.{} 2>&1 | tee scylla-migrate.log'.format(
                                           self.db_cluster.nodes[0].external_address,
                                           self.cs_db_cluster.nodes[0].external_address,
