@@ -196,6 +196,12 @@ class CDCReplicationTest(ClusterTester):
             if not (self.consistency_ok and migrate_ok):
                 break
 
+            # Flush memtables before truncating due to scylladb/scylla#6555
+            self.log.info('Flushing memtables on all nodes')
+            for node in self.db_cluster.nodes + self.cs_db_cluster.nodes:
+                self.log.info('Flushing memtable on {}'.format(node))
+                node.run_nodetool('flush')
+
             if rnd != no_rounds - 1:
                 self.log.info('Truncating master cluster base table.')
                 with self.db_cluster.cql_connection_patient(node=self.db_cluster.nodes[0]) as sess:
